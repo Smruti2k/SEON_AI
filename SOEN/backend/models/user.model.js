@@ -15,7 +15,8 @@ const userSchema = new mongoose.Schema({
     },
 
     password :{
-        type: String
+        type: String,
+        select : false,
     }
 })
 
@@ -32,11 +33,14 @@ userSchema.statics.hashPassword = async function (password){
 // If they match, it returns true; otherwise, it returns false.
 
 userSchema.methods.isValidPassword = async function (password){
+
+    // console.log(password,this.password);
+
     return await bcrypt.compare(password, this.password)
 }
 
 userSchema.methods.generateJWT = function (){
-    return jwt.sign({email: this.email},process.env.JWT_SECRET);
+    return jwt.sign({email: this.email},process.env.JWT_SECRET,{expiresIn: '24h'});
 }
 
 
