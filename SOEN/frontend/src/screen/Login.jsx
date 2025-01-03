@@ -1,5 +1,6 @@
-import React, { useState } from "react";
+import React, { useState,useContext } from "react";
 import { Link ,useNavigate } from "react-router-dom";
+import {UserContext} from "../context/user.context.jsx";
 
 //using axios to ingegrate the front end and backend
 
@@ -11,6 +12,8 @@ function Login() {
 
   const navigate = useNavigate();
 
+  const {setUser} = useContext(UserContext);
+
   function submitHandler(e) {
     //prevents some default functionality of the button
     e.preventDefault();
@@ -18,6 +21,10 @@ function Login() {
       .post("/users/login", { email, password })
       .then((res) => {
         console.log(res.data);
+
+        localStorage.setItem('token', res.data.token)
+        setUser(res.data.user);
+
         navigate('/')
       })
       .catch((err) => {

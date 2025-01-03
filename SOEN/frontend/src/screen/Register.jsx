@@ -1,11 +1,13 @@
 import { Link, useNavigate } from "react-router-dom";
-import React, { useState } from "react";
+import React, { useState , useContext } from "react";
 import axios from "../config/axios.js";
-import axiosInstance from "../config/axios.js";
+import { UserContext } from "../context/user.context.jsx";
 
 function Register() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+
+  const {setUser} = useContext(UserContext);
 
   const navigate = useNavigate();
 
@@ -17,6 +19,10 @@ function Register() {
       .post("/users/register", { email, password })
       .then((res) => {
         console.log(res);
+
+        localStorage.setItem('token',res.data.user)
+        setUser(res.data.user)
+
         navigate("/");
       })
       .catch((err) => {
