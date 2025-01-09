@@ -27,7 +27,7 @@ function Home() {
   }
 
   return (
-    <main className="p-4">
+    <main className=" h-screen p-4 bg-slate-600">
       <div className="Projects">
         <button
           className="Project p-4 border border-slate-300 rounded-md hover:bg-indigo-200"

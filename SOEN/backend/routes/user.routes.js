@@ -33,6 +33,8 @@ router.post(
 
   router.get("/logOut" , userController.logoutUserController, authMiddleware.authUser);
 
+  router.get("/all", authMiddleware.authUser, userController.getAllUserController )
+
   
 
 

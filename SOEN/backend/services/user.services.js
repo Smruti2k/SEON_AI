@@ -18,3 +18,11 @@ export const createUser = async({email,password}) =>{
 
     
 };
+
+export const getAllUser = async({userId})=>{
+    const users= await userModel.find({
+        //return all users except the current one querry
+        _id:{$ne: userId}
+    });
+    return users;
+}
