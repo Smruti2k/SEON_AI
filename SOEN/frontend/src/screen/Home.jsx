@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { UserContext } from "../context/user.context.jsx";
 import { useContext } from "react";
 import axios from "../config/axios.js";
@@ -8,17 +8,17 @@ function Home() {
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [projectName, setProjectName] = useState(null);
+  const [project, setProject] = useState([]);
 
   function createProject(e) {
-
-    e.preventDefault()
+    e.preventDefault();
 
     console.log({ projectName });
     axios
       .post("/project/create", { name: projectName })
       .then((res) => {
         console.log(res);
-        alert('Sucess');
+        alert("Sucess");
         setIsModalOpen(false);
       })
       .catch((err) => {
@@ -26,9 +26,20 @@ function Home() {
       });
   }
 
+  useEffect(() => {
+    axios
+      .get("/project/all")
+      .then((res) => {
+        setProject(res.data.projects);
+      })
+      .catch((err) => {
+        console.log(err);
+      });
+  }, []);
+
   return (
-    <main className=" h-screen p-4 bg-slate-600">
-      <div className="Projects">
+    <main className=" h-screen p-4">
+      <div className="Projects flex">
         <button
           className="Project p-4 border border-slate-300 rounded-md hover:bg-indigo-200"
           onClick={() => setIsModalOpen(true)}
@@ -36,6 +47,24 @@ function Home() {
           New Project
           <i className="ri-link ml-2"></i>
         </button>
+        {project.map((e) => (
+          <div
+            key={e._id}
+            className="p-4 border flex flex-col  gap-2 border-slate-300 rounded-md ml-2 cursor-pointer min-w-52 hover:bg-indigo-200"
+          >
+            <h2 className="font-semibold">{e.name}</h2>
+            {/* number of users in this project or collaborators */}
+            <div className="flex gap-2">
+              <p>
+                <small>
+                  <i className="ri-user-fill mr-1"></i>Collaborators :
+                </small>
+              </p>
+
+              {e.user.length}
+            </div>
+          </div>
+        ))}
       </div>
 
       {isModalOpen && (
