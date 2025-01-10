@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { UserContext } from "../context/user.context.jsx";
 import { useContext } from "react";
 import axios from "../config/axios.js";
+import { useNavigate } from "react-router-dom";
 
 function Home() {
   const { user } = useContext(UserContext);
@@ -9,6 +10,7 @@ function Home() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [projectName, setProjectName] = useState(null);
   const [project, setProject] = useState([]);
+  const navigate = useNavigate();
 
   function createProject(e) {
     e.preventDefault();
@@ -50,6 +52,9 @@ function Home() {
         {project.map((e) => (
           <div
             key={e._id}
+            onClick={() => {
+              navigate(`/project`, { state: { project } });
+            }}
             className="p-4 border flex flex-col  gap-2 border-slate-300 rounded-md ml-2 cursor-pointer min-w-52 hover:bg-indigo-200"
           >
             <h2 className="font-semibold">{e.name}</h2>
