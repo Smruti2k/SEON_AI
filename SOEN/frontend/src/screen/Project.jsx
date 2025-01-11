@@ -1,5 +1,6 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import React from "react";
+import axios from "../config/axios.js";
 import { useNavigate, useLocation } from "react-router-dom";
 
 const Project = () => {
@@ -8,11 +9,55 @@ const Project = () => {
   const location = useLocation();
   //   console.log(location.state);
   const [isSidePannelOpen, setisSidePannelOpen] = useState(false);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [usersData, setUsersData] = useState([]);
+
+  //axios for getting all the users
+  useEffect(() => {
+    axios
+      .get("/users/all")
+      .then((res) => {
+        setUsersData(res.data.users);
+      })
+      .catch((err) => {
+        console.log(err);
+      });
+  }, []);
 
   return (
     <main className="h-screen w-screen flex ">
       <section className="left relative h-full min-w-96 bg-slate-300 flex flex-col">
-        <header className="flex justify-end p-2 px-4 w-full bg-slate-100">
+        <header className="flex justify-between items-center p-2 px-4 w-full bg-slate-100">
+          <button onClick={() => setIsModalOpen(true)} className="flex gap-2 ">
+            <i className="ri-add-line absolute top-4"></i>
+            <div className="pl-5 mt-0.5">
+              <small>Collaborators</small>
+            </div>
+          </button>
+
+          {isModalOpen && (
+            <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
+              <div className="bg-white p-2 rounded-md shadow-md w-1/4">
+                <div className="flex items-center pt-1 justify-between pb-2">
+                  <h3 className="px-2">Users</h3>
+                  <button onClick={() => setIsModalOpen(false)} className="p-1">
+                    <i className="ri-close-circle-fill"></i>
+                  </button>
+                </div>
+                <div className="users-list flex flex-col gap-2 max-w-72 mb-3 overflow-auto">
+                  {usersData.map((e) => (
+                    <div
+                      key={e._id}
+                      className="p-2 ml-1  flex gap-2  text-sm font-semibold rounded-md  hover:bg-slate-300 cursor-pointer"
+                    >
+                      <i className="ri-user-6-fill"></i>
+                      <p className=" ">{e.email}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          )}
           <button
             onClick={() => setisSidePannelOpen(!isSidePannelOpen)}
             className="hover: cursor-pointer px-2 py-1 rounded-md border border-slate-400"
