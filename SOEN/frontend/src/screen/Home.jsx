@@ -53,7 +53,8 @@ function Home() {
           <div
             key={e._id}
             onClick={() => {
-              navigate(`/project`, { state: { project } });
+              //the project:e ensures that the project id which is being clicked is sent on thus reducing the error i faced of all the state varibales while catching the location state
+              navigate(`/project`, { state: { project : e } });
             }}
             className="p-4 border flex flex-col  gap-2 border-slate-300 rounded-md ml-2 cursor-pointer min-w-52 hover:bg-indigo-200"
           >

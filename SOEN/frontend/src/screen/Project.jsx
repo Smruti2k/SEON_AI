@@ -1,16 +1,52 @@
 import { useState, useEffect } from "react";
 import React from "react";
 import axios from "../config/axios.js";
-import { useNavigate, useLocation } from "react-router-dom";
+import { useLocation } from "react-router-dom";
 
 const Project = () => {
   //use location is used to access the state defined in use navigate to pason the project details without using props
 
   const location = useLocation();
-  //   console.log(location.state);
+  // console.log(location.state);
+  //here the project ensures that the project details are captured in this const variable now i can access that simply as project_id
+  const project = location.state?.project;
   const [isSidePannelOpen, setisSidePannelOpen] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [usersData, setUsersData] = useState([]);
+  const [selectedUserId, setSelectedUserId] = useState([]);
+
+  const handelUserClick = (id) => {
+    setSelectedUserId((prevSelectedUserId) => {
+      //This is a callback that React provides with the previous state value (prevSelectedUserId). Using this ensures the new state is calculated correctly, even if multiple updates happen in quick succession.
+      const newSelectedUserId = new Set(prevSelectedUserId);
+      if (newSelectedUserId.has(id)) {
+        newSelectedUserId.delete(id);
+      } else {
+        newSelectedUserId.add(id);
+      }
+      // console.log(newSelectedUserId);
+
+      return newSelectedUserId;
+    });
+  };
+
+
+  function addCollaborators() {
+    axios
+      .put("/project/add-user", {
+        
+        projectId:project._id,
+        user: Array.from(selectedUserId),
+
+      })
+      .then((res) => {
+        console.log(res.data);
+        setIsModalOpen(false);
+      })
+      .catch((err) => {
+        console.log(err);
+      });
+  }
 
   //axios for getting all the users
   useEffect(() => {
@@ -38,26 +74,39 @@ const Project = () => {
           {isModalOpen && (
             <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
               <div className="bg-white p-2 rounded-md shadow-md w-1/4">
-                <div className="flex items-center pt-1 justify-between pb-2">
-                  <h3 className="px-2">Users</h3>
+                <div className="flex items-center pt-1 justify-between pb-2 ">
+                  <h3 className="px-2 ">Users</h3>
                   <button onClick={() => setIsModalOpen(false)} className="p-1">
                     <i className="ri-close-circle-fill"></i>
                   </button>
                 </div>
-                <div className="users-list flex flex-col gap-2 max-w-72 mb-3 overflow-auto">
+                <div className="users-list flex flex-col justify-center gap-2 mb-3 max-h-96 overflow-auto ">
                   {usersData.map((e) => (
                     <div
                       key={e._id}
-                      className="p-2 ml-1  flex gap-2  text-sm font-semibold rounded-md  hover:bg-slate-300 cursor-pointer"
+                      className={`p-2 ml-1 flex gap-2  text-sm font-semibold rounded-md hover:bg-slate-300 ${
+                        Array.from(selectedUserId).indexOf(e._id) != -1
+                          ? "bg-slate-300"
+                          : ""
+                      } cursor-pointer`}
+                      onClick={() => handelUserClick(e._id)}
                     >
                       <i className="ri-user-6-fill"></i>
                       <p className=" ">{e.email}</p>
                     </div>
                   ))}
                 </div>
+                <div className="flex justify-center pt-3">
+                  <button 
+                  onClick={addCollaborators}
+                  className="px-4 py-2 border text-sm bg-blue-300 rounded-md hover:bg-blue-500">
+                    Add Collaboraters
+                  </button>
+                </div>
               </div>
             </div>
           )}
+
           <button
             onClick={() => setisSidePannelOpen(!isSidePannelOpen)}
             className="hover: cursor-pointer px-2 py-1 rounded-md border border-slate-400"
