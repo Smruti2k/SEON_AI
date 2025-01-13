@@ -14,6 +14,7 @@ const Project = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [usersData, setUsersData] = useState([]);
   const [selectedUserId, setSelectedUserId] = useState([]);
+  const [projects, setProjects] = useState(project);
 
   const handelUserClick = (id) => {
     setSelectedUserId((prevSelectedUserId) => {
@@ -30,17 +31,15 @@ const Project = () => {
     });
   };
 
-
+  //this adds users to the project in backend or makes the api call
   function addCollaborators() {
     axios
       .put("/project/add-user", {
-        
-        projectId:project._id,
+        projectId: project._id,
         user: Array.from(selectedUserId),
-
       })
       .then((res) => {
-        console.log(res.data);
+        //
         setIsModalOpen(false);
       })
       .catch((err) => {
@@ -48,8 +47,18 @@ const Project = () => {
       });
   }
 
-  //axios for getting all the users
+  // this function call needs to be loaded every time the page reloads thus axios callinside useEffect for getting all the users
   useEffect(() => {
+    axios
+      .get(`project/getProject/${project._id}`)
+      .then((res) => {
+        // console.log(res.data.project);
+        setProjects(res.data.project);
+      })
+      .catch((err) => {
+        console.log(err.message);
+      });
+
     axios
       .get("/users/all")
       .then((res) => {
@@ -97,9 +106,10 @@ const Project = () => {
                   ))}
                 </div>
                 <div className="flex justify-center pt-3">
-                  <button 
-                  onClick={addCollaborators}
-                  className="px-4 py-2 border text-sm bg-blue-300 rounded-md hover:bg-blue-500">
+                  <button
+                    onClick={addCollaborators}
+                    className="px-4 py-2 border text-sm bg-blue-300 rounded-md hover:bg-blue-500"
+                  >
                     Add Collaboraters
                   </button>
                 </div>
@@ -145,19 +155,27 @@ const Project = () => {
             isSidePannelOpen ? "translate-x-0" : "-translate-x-full"
           }`}
         >
-          <header className="flex justify-end  p-2 px-3 bg-slate-300">
+          <header className="flex justify-between p-2 px-3 bg-slate-300">
+            <h1 className="text-lg font-semibold">Members</h1>
             <button onClick={() => setisSidePannelOpen(!isSidePannelOpen)}>
               <i className="ri-close-line"></i>
             </button>
           </header>
 
           <div className="users flex flex-col gap-2 p-1">
-            <div className="user flex gap-2 items-center cursor-pointer hover:bg-slate-200 p-2 rounded-sm">
-              <div className="aspect-square rounded-full flex w-fit h-fit items-center justify-center p-4 bg-slate-700">
-                <i className="ri-user-3-fill absolute"></i>
-              </div>
-              <h1 className="username font-semibold text-lg">username</h1>
-            </div>
+            {projects.user &&
+              projects.user.map((e) => {
+                return (
+                  <div className="user flex gap-2 items-center cursor-pointer hover:bg-slate-200 p-2 rounded-sm">
+                    <div className="aspect-square rounded-full flex w-fit h-fit items-center justify-center p-4 bg-slate-700">
+                      <i className="ri-user-3-fill absolute"></i>
+                    </div>
+                    <h1 className="username  text-lg">
+                      {e.email}
+                    </h1>
+                  </div>
+                );
+              })}
           </div>
         </div>
       </section>

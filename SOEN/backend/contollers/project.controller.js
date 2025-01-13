@@ -51,7 +51,6 @@ export const addUserToProject = async (req, res) => {
 
   try {
     const { projectId, user } = req.body;
-    console.log(projectId);
 
     //this userId is the of the one who is trying to add collaborators into theis project
 
