@@ -1,7 +1,14 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect,useRef, useContext } from "react";
 import React from "react";
 import axios from "../config/axios.js";
 import { useLocation } from "react-router-dom";
+import {
+  initializeSocket,
+  receiveMessage,
+  sendMessage,
+} from "../config/socket.js";
+
+import { UserContext } from "../context/user.context";
 
 const Project = () => {
   //use location is used to access the state defined in use navigate to pason the project details without using props
@@ -15,6 +22,9 @@ const Project = () => {
   const [usersData, setUsersData] = useState([]);
   const [selectedUserId, setSelectedUserId] = useState([]);
   const [projects, setProjects] = useState(project);
+  const [message, setMessage] = useState("");
+  const { user } = useContext(UserContext);
+  const messageBox = React.createRef()
 
   const handelUserClick = (id) => {
     setSelectedUserId((prevSelectedUserId) => {
@@ -47,8 +57,29 @@ const Project = () => {
       });
   }
 
-  // this function call needs to be loaded every time the page reloads thus axios callinside useEffect for getting all the users
+  //this function will handel to send the message
+  const  send = ()=> {
+    
+    sendMessage("project-message", { message, sender: user});
+
+    appendOutGoingingMessage(message);
+    
+
+    setMessage("");
+    scrollToBottom();
+  }
+
+  // this function call needs to be loaded every time the page reloads thus axios call inside useEffect for getting all the users
   useEffect(() => {
+    initializeSocket(project._id);
+
+
+    receiveMessage("project-message", (data) => {
+      console.log(data);
+      appendIncomingMessage(data);
+    });
+
+
     axios
       .get(`project/getProject/${project._id}`)
       .then((res) => {
@@ -69,10 +100,40 @@ const Project = () => {
       });
   }, []);
 
+
+
+  function appendIncomingMessage(messageObject){
+    const messageBox = document.querySelector('.message-box')
+
+    const message = document.createElement('div')
+    message.classList.add('message','max-w-56','flex','flex-col','pg-2','bg-slate-50','w-fit','rounded-md','p-2')
+    message.innerHTML = `<small class= 'opacity-55 text-xs'>${messageObject.sender.email}</small>
+    <p class='text-sm'>${messageObject.message}</p>`
+
+    messageBox.appendChild(message);
+    scrollToBottom();
+  }
+
+  function appendOutGoingingMessage(message){
+    const messageBox = document.querySelector('.message-box')
+
+    const newMessage = document.createElement('div')
+    newMessage.classList.add('message','ml-auto','max-w-56','flex','flex-col','pg-2','bg-slate-50','w-fit','rounded-md','p-2')
+    newMessage.innerHTML = `<small class= 'opacity-55 text-xs'>${user.email}</small>
+    <p class='text-sm'>${message}</p>`
+
+    messageBox.appendChild(newMessage);
+    
+  }
+
+  function scrollToBottom() {
+    messageBox.current.scrollTop = messageBox.current.scrollHeight
+}
+
   return (
     <main className="h-screen w-screen flex ">
       <section className="left relative h-full min-w-96 bg-slate-300 flex flex-col">
-        <header className="flex justify-between items-center p-2 px-4 w-full bg-slate-100">
+        <header className="flex justify-between items-center p-2 px-4 w-full bg-slate-100 absolute top-0">
           <button onClick={() => setIsModalOpen(true)} className="flex gap-2 ">
             <i className="ri-add-line absolute top-4"></i>
             <div className="pl-5 mt-0.5">
@@ -124,28 +185,25 @@ const Project = () => {
             <i className="ri-group-line"></i>
           </button>
         </header>
-        <div className="conversation-area flex flex-col flex-grow">
-          <div className="message-box flex-grow flex flex-col p-1 gap-1">
-            <div className="message flex flex-col bg-slate-50 w-fit rounded-md p-2 max-w-56">
-              <small className="opacity-55 text-xs">example</small>
-              <p className="text-sm">
-                nt unde, mollitia deserunt inventore quae? Assumenda!
-              </p>
-            </div>
-            <div className="ml-auto message flex flex-col bg-slate-50 w-fit rounded-md p-2 max-w-56">
-              <small className="opacity-55 text-xs">example</small>
-              <p className="text-sm">
-                cipit quam veritatis illo cum aperiam iste sit debitis?
-              </p>
-            </div>
+        <div className="conversation-area pt-14 pb-10 flex-grow flex flex-col h-full relative">
+          <div 
+          ref={messageBox}
+          className="message-box p-1 flex-grow flex flex-col gap-1 overflow-auto max-h-full scrollbar-hide">
+            
+            
           </div>
-          <div className="input-Field w-full flex">
+          <div className="input-Field w-full flex absolute bottom-0 l">
             <input
+              value={message}
+              onChange={(e) => setMessage(e.target.value)}
               className="p-1 px-3  w-5/6 focus:outline-none border-none rounded-sm "
               type="text"
               placeholder="enter message"
             />
-            <button className="flex-grow border border-slate-300 bg-black text-white rounded-sm">
+            <button
+              onClick={send}
+              className="flex-grow border border-slate-300 bg-black text-white rounded-sm"
+            >
               <i className="ri-send-plane-fill"></i>
             </button>
           </div>
@@ -170,9 +228,7 @@ const Project = () => {
                     <div className="aspect-square rounded-full flex w-fit h-fit items-center justify-center p-4 bg-slate-700">
                       <i className="ri-user-3-fill absolute"></i>
                     </div>
-                    <h1 className="username  text-lg">
-                      {e.email}
-                    </h1>
+                    <h1 className="username  text-lg">{e.email}</h1>
                   </div>
                 );
               })}
